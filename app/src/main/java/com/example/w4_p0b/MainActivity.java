@@ -37,11 +37,12 @@ public class MainActivity extends AppCompatActivity {
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 
 //        try {
-//        cm = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+//            cm = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
 //            p = cm.getParameters();
 //            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
 //                sw.setEnabled(false);
 //                avail = false;
+//            }
 //        } catch (Exception e){
 //            sw.setEnabled(false);
 //            avail = false;
