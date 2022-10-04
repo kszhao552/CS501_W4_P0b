@@ -98,7 +98,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
-            if (p.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
+            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+                sw.setEnabled(false);
+                avail = false;
+            } else if (p.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
                 avail = true;
                 sw.setEnabled(true);
                 setChecked(false);
