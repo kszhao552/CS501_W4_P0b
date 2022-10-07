@@ -1,14 +1,11 @@
 package com.example.w4_p0b;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText edt;
     private Camera cm;
     private Camera.Parameters p;
-    private boolean avail = true;
     private GestureDetectorCompat mDetector;
 
 
@@ -35,18 +31,7 @@ public class MainActivity extends AppCompatActivity {
         sw = (Switch) findViewById(R.id.switch1);
         edt = (EditText) findViewById(R.id.action);
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
-
-//        try {
-//            cm = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-//            p = cm.getParameters();
-//            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-//                sw.setEnabled(false);
-//                avail = false;
-//            }
-//        } catch (Exception e){
-//            sw.setEnabled(false);
-//            avail = false;
-//        }
+        cm = getCameraInstance();
 
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -76,44 +61,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setChecked(boolean b){
-        if (avail) {
-            sw.setEnabled(b);
-        }
+            sw.setChecked(b);
     }
 
-    private void setLight(boolean b){
-        if (avail){
-            if (b){
-               p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-               cm.setParameters(p);
-            }
-            else{
+    private void setLight(boolean b) {
+        try {
+            if (b) {
+                p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                cm.setParameters(p);
+            } else {
                 p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                 cm.setParameters(p);
             }
+        } catch (Exception e){
+
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-                sw.setEnabled(false);
-                avail = false;
-            } else if (p.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
-                avail = true;
-                sw.setEnabled(true);
-                setChecked(false);
-            } else if (p.getFlashMode().equals(Camera.Parameters.FLASH_MODE_TORCH)) {
-                avail = true;
-                sw.setEnabled(true);
-                setChecked(true);
-            }
-        } catch (Exception e) {
-            avail = false;
-            sw.setEnabled(false);
+        if (cm == null) {
+            cm = getCameraInstance();
         }
+        if (cm == null) {
+            sw.setEnabled(false);
+        }else {
+            cm.startPreview();
+            p = cm.getParameters();
+            if (sw.isChecked()){
+                setLight(true);
+            }
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cm.stopPreview();
+        cm.release();
+        cm = null;
     }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -144,4 +132,14 @@ public class MainActivity extends AppCompatActivity {
         return super.onTouchEvent(event);
     }
 
+    public static Camera getCameraInstance(){
+        Camera c = null;
+        try {
+            c = Camera.open(); // attempt to get a Camera instance
+        }
+        catch (Exception e){
+            // Camera is not available (in use or does not exist)
+        }
+        return c; // returns null if camera is unavailable
+    }
 }
